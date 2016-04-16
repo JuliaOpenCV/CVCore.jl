@@ -1,4 +1,4 @@
-import Base: size, eltype, call, similar, convert, show
+import Base: size, eltype, call, similar, convert, show, isempty
 
 """AbstractCvMat{T,N} represents `N`-dimentional arrays in OpenCV (cv::Mat,
 cv::UMat, etc), which element type are bound to `T`.
@@ -65,13 +65,14 @@ function size(m::Union{AbstractCvMat, cvMatExpr})
     end
 end
 
-clone(m::AbstractCvMat) = icxx"$(m.handle).clone();"
+clone(m::AbstractCvMat) = Mat(icxx"$(m.handle).clone();")
 total(m::AbstractCvMat) = convert(Int, icxx"$(m.handle).total();")
 isContinuous(m::AbstractCvMat) = icxx"$(m.handle).isContinuous();"
 elemSize(m::AbstractCvMat) = convert(Int, icxx"$(m.handle).elemSize();")
 depth(m::AbstractCvMat) = convert(Int, icxx"$(m.handle).depth();")
 channels(m::AbstractCvMat) = channels(handle(m))
 empty(m::AbstractCvMat) = icxx"$(m.handle).empty();"
+isempty(m::AbstractCvMat) = empty(m)
 
 
 ### MatExpr{T,N} ###

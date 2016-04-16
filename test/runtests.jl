@@ -1,24 +1,33 @@
 using CVCore
 using Base.Test
 
-import CVCore: mat_depth, mat_channel, maketype, empty
+import CVCore: mat_depth, mat_channel, maketype
 
 @testset "Mat{T,N}" begin
     mat = Mat{Float64}()
-    @test empty(mat)
+    @test isempty(mat)
 
     mat = Mat{UInt8}(10, 20)
     @test size(mat) == (10, 20)
     @test channels(mat) == 1
-    @test !empty(mat)
+    @test rows(mat) == 10
+    @test cols(mat) == 20
+    @test total(mat) == length(mat)
+    @test isContinuous(mat)
+    @test elemSize(mat) == sizeof(UInt8)*channels(mat)
+    @test dims(mat) == 2
+    @test !isempty(mat)
 
-    mat = Mat{UInt8}(10, 20, 2)
+    mat = Mat{Float32}(10, 20, 2)
     @test channels(mat) == 2
     @test size(mat) == (10, 20, 2)
+    @test elemSize(mat) == sizeof(Float32)*channels(mat)
+    @test dims(mat) == 2
 
-    mat = Mat{UInt8}(10, 20, 3)
+    mat = Mat{Float64}(10, 20, 3)
     @test channels(mat) == 3
     @test size(mat) == (10, 20, 3)
+    @test elemSize(mat) == sizeof(Float64)*channels(mat)
 
     @testset "Array to cv::Mat conversion" begin
         arr = rand(Float64, 10, 2)

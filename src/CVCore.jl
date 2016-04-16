@@ -1,6 +1,7 @@
 module CVCore
 
-export AbstractCvMat, MatExpr, Mat, UMat, depth, channels
+export AbstractCvMat, MatExpr, Mat, UMat, depth, channels, flags, dims, rows,
+    cols, clone, total, isContinuous, elemSize
 
 using LibOpenCV
 using Cxx
