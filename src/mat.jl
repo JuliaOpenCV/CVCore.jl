@@ -185,21 +185,8 @@ getindex(m::Mat, i::Int) =
 getindex(m::Mat, i::Int, j::Int) =
     convert(eltype(m), icxx"$(m.handle).at<$(eltype(m))>($i-1, $j-1);")
 function getindex{T}(m::Mat{T}, i::Int, j::Int, k::Int)
-    cn = channels(m)
-    val::T = 0
-
-    # TODO
-    if cn == 2
-        val = icxx"$(m.handle).at<cv::Vec<$T,2>>($i-1, $j-1)[$k-1];"
-    elseif cn == 3
-        val = icxx"$(m.handle).at<cv::Vec<$T,3>>($i-1, $j-1)[$k-1];"
-    elseif cn == 4
-        val = icxx"$(m.handle).at<cv::Vec<$T,4>>($i-1, $j-1)[$k-1];"
-    else
-        error("$cn : unsupported channels")
-    end
-
-    return val
+    cn = Val{channels(m)}
+    return icxx"$(m.handle).at<cv::Vec<$T,$cn>>($i-1, $j-1)[$k-1];"
 end
 
 setindex!(m::Mat, v, i::Int) =
@@ -207,18 +194,8 @@ setindex!(m::Mat, v, i::Int) =
 setindex!(m::Mat, v, i::Int, j::Int) =
     icxx"$(m.handle).at<$(eltype(m))>($i-1, $j-1) = $v;"
 function setindex!{T}(m::Mat{T}, v, i::Int, j::Int, k::Int)
-    cn = channels(m)
-    val::T = 0
-
-    if cn == 2
-        val = icxx"$(m.handle).at<cv::Vec<$T,2>>($i-1, $j-1)[$k-1] = $v;"
-    elseif cn == 3
-        val = icxx"$(m.handle).at<cv::Vec<$T,3>>($i-1, $j-1)[$k-1] = $v;"
-    elseif cn == 4
-        val = icxx"$(m.handle).at<cv::Vec<$T,4>>($i-1, $j-1)[$k-1] = $v;"
-    else
-        error("$cn : unsupported channels")
-    end
+    cn = Val{channels(m)}
+    icxx"$(m.handle).at<cv::Vec<$T,$cn>>($i-1, $j-1)[$k-1] = $v;"
 end
 
 ### UMat{T,N} ###
