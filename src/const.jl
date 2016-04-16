@@ -1,3 +1,5 @@
+# All constants defined in the file are exported
+
 for name in [
     ### Matrix types from cvdef.h ###
     :CV_CN_MAX,
@@ -54,7 +56,10 @@ for name in [
     :CV_SUBMAT_FLAG,
     ]
     ex = Expr(:macrocall, symbol("@icxx_str"), string(name, ";"))
-    @eval global const $name = $ex
+    @eval begin
+        global const $name = $ex
+        export $name
+    end
 end
 
 
@@ -67,7 +72,7 @@ for name in [
     :ACCESS_FAST,
     ]
     ex = Expr(:macrocall, symbol("@icxx_str"), string("cv::", name, ";"))
-    @eval global $name = $ex
+    @eval global const $name = $ex
 end
 
 Cxx.jl has type translation bug? The above code doesn't work as expected:
@@ -83,3 +88,5 @@ const ACCESS_WRITE  = 1<<25
 const ACCESS_RW     = 3<<24
 const ACCESS_MASK   = ACCESS_RW
 const ACCESS_FAST   = 1<<26
+
+export ACCESS_READ, ACCESS_WRITE, ACCESS_RW, ACCESS_MASK, ACCESS_FAST

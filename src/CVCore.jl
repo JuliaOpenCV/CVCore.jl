@@ -1,6 +1,6 @@
 module CVCore
 
-export AbstractCvMat, MatExpr, Mat, UMat
+export AbstractCvMat, MatExpr, Mat, UMat, depth, channels
 
 using LibOpenCV
 using Cxx
@@ -8,6 +8,8 @@ using Cxx
 include("const.jl")
 
 import Base: call, convert, eltype, size
+
+### Cxx types ###
 
 typealias cvScalar_{T} cxxt"cv::Scalar_<$T>"
 
@@ -44,7 +46,7 @@ area(s::AbstractCvSize) = Int(@cxx s->area())
 
 """Determine julia type from the depth of cv::Mat
 """
-function jltype(depth::Int)
+function jltype(depth)
     if depth == CV_8U
         return UInt8
     elseif depth == CV_8S
