@@ -29,6 +29,10 @@ import CVCore: mat_depth, mat_channel, maketype
     @test size(mat) == (10, 20, 3)
     @test elemSize(mat) == sizeof(Float64)*channels(mat)
 
+    matclone = clone(mat)
+    @test isa(matclone, typeof(mat))
+    @test matclone == mat
+
     @testset "Array to cv::Mat conversion" begin
         arr = rand(Float64, 10, 2)
         m = Mat(arr)
