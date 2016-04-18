@@ -144,10 +144,22 @@ function (::Type{Mat{T}}){T}(rows::Int, cols::Int)
     Mat{T,2}(handle)
 end
 
+function (::Type{Mat{T}}){T}(rows::Int, cols::Int, s::AbstractCvScalar)
+    typ = maketype(cvdepth(T), 1)
+    handle = icxx"cv::Mat($rows, $cols, $typ, $s);"
+    Mat{T,2}(handle)
+end
+
 """Multi-chanel 2-dimentional mat constructor"""
 function (::Type{Mat{T}}){T}(rows::Int, cols::Int, cn::Int)
     typ = maketype(cvdepth(T), cn)
     handle = icxx"cv::Mat($rows, $cols, $typ);"
+    Mat{T,3}(handle)
+end
+
+function (::Type{Mat{T}}){T}(rows::Int, cols::Int, cn::Int, s::AbstractCvScalar)
+    typ = maketype(cvdepth(T), cn)
+    handle = icxx"cv::Mat($rows, $cols, $typ, $s);"
     Mat{T,3}(handle)
 end
 
@@ -187,7 +199,7 @@ getindex(m::Mat, i::Int, j::Int) =
     convert(eltype(m), icxx"$(m.handle).at<$(eltype(m))>($i-1, $j-1);")
 function getindex{T}(m::Mat{T}, i::Int, j::Int, k::Int)
     cn = Val{channels(m)}
-    return icxx"$(m.handle).at<cv::Vec<$T,$cn>>($i-1, $j-1)[$k-1];"
+    convert(eltype(m), icxx"$(m.handle).at<cv::Vec<$T,$cn>>($i-1, $j-1)[$k-1];")
 end
 
 setindex!(m::Mat, v, i::Int) =

@@ -1,7 +1,13 @@
 module CVCore
 
 export AbstractCvMat, MatExpr, Mat, UMat, depth, channels, flags, dims, rows,
-    cols, clone, total, isContinuous, elemSize
+    cols, clone, total, isContinuous, elemSize, Scalar
+
+#=
+Naming convention:
+  1. Cxx types should have prefix cv: e.g. cv::Mat -> cvMat
+  2. Julia types should not have prefix cv: e.g. cv::Mat -> Mat
+=#
 
 using LibOpenCV
 using Cxx
@@ -15,7 +21,7 @@ import Base: call, convert, eltype, size
 typealias cvScalar_{T} cxxt"cv::Scalar_<$T>"
 
 const cvScalar = cxxt"cv::Scalar"
-cvScalar(v) = icxx"cv::Scalar($v);"
+cvScalar(v) = icxx"return cv::Scalar($v);"
 
 typealias AbstractCvScalar Union{cvScalar, cvScalar_}
 
@@ -92,6 +98,15 @@ end
 mat_depth(flags) = flags & CV_MAT_DEPTH_MASK
 mat_channel(flags) = (flags & CV_MAT_CN_MASK) >> CV_CN_SHIFT + 1
 maketype(depth, cn) = mat_depth(depth) + ((cn-1) << CV_CN_SHIFT)
+
+### Scalar ###
+
+# TODO: need to be subtype of cv::Vec
+typealias Scalar cvScalar_
+(::Type{Scalar{T}}){T}(s1=01,s2=0,s3=0,s4=0) =
+    icxx"return cv::Scalar_<$T>($s1,$s2,$s3,$s4);"
+(::Type{Scalar})(s1=0,s2=0,s3=0,s4=0) = Scalar{Float64}(s1,s2,s3,s4)
+eltype{T}(s::Scalar{T}) = T
 
 include("mat.jl")
 

@@ -3,6 +3,17 @@ using Base.Test
 
 import CVCore: mat_depth, mat_channel, maketype
 
+@testset "Scalar{T}" begin
+    # Eltype should be Float64
+    @test eltype(Scalar(0)) == Float64
+    @test eltype(Scalar(Int(0))) == Float64
+
+    # with explicit type paramter
+    for typ in [Int32, Int, Float32, Float64]
+        @test eltype(Scalar{typ}(1)) == typ
+    end
+end
+
 @testset "Mat{T,N}" begin
     mat = Mat{Float64}()
     @test isempty(mat)
@@ -24,7 +35,7 @@ import CVCore: mat_depth, mat_channel, maketype
     @test elemSize(mat) == sizeof(Float32)*channels(mat)
     @test dims(mat) == 2
 
-    mat = Mat{Float64}(10, 20, 3)
+    mat = Mat{Float64}(10, 20, 3, Scalar(1,0.5,0.3))
     @test channels(mat) == 3
     @test size(mat) == (10, 20, 3)
     @test elemSize(mat) == sizeof(Float64)*channels(mat)
@@ -39,6 +50,11 @@ import CVCore: mat_depth, mat_channel, maketype
         @test eltype(m) == eltype(arr)
         @test size(arr) == reverse(size(m))
     end
+
+    mat = Mat{UInt8}(10,10, Scalar(0))
+    @test all(mat .== 0)
+    mat = Mat{UInt8}(10,10, Scalar(1))
+    @test all(mat .== 1)
 end
 
 @testset "UMat{T,N}" begin
