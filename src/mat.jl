@@ -34,7 +34,7 @@ data(m::cvMat) = icxx"$m.data;"
 
 import Cxx: CppEnum
 
-const UMatUsageFlags = CppEnum{symbol("cv::UMatUsageFlags"),Int32}
+const UMatUsageFlags = CppEnum{Symbol("cv::UMatUsageFlags"),Int32}
 
 const USAGE_DEFAULT = UMatUsageFlags(0)
 const USAGE_ALLOCATE_HOST_MEMORY = UMatUsageFlags(1 << 0)
@@ -330,7 +330,7 @@ macro matexpr(ex)
     cxxargs = Expr(ex.head, ex.args[1],
         Expr(:call, :handle, esc(ex.args[2])),
         Expr(:call, :handle, esc(ex.args[3])))
-    mc = Expr(:macrocall, symbol("@cxx"), cxxargs)
+    mc = Expr(:macrocall, Symbol("@cxx"), cxxargs)
     Expr(:call, :MatExpr, mc)
 end
 

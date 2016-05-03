@@ -55,7 +55,7 @@ for name in [
     :CV_SUBMAT_FLAG_SHIFT,
     :CV_SUBMAT_FLAG,
     ]
-    ex = Expr(:macrocall, symbol("@icxx_str"), string(name, ";"))
+    ex = Expr(:macrocall, Symbol("@icxx_str"), string(name, ";"))
     @eval begin
         global const $name = $ex
         export $name
@@ -71,7 +71,7 @@ for name in [
     :ACCESS_MASK,
     :ACCESS_FAST,
     ]
-    ex = Expr(:macrocall, symbol("@icxx_str"), string("cv::", name, ";"))
+    ex = Expr(:macrocall, Symbol("@icxx_str"), string("cv::", name, ";"))
     @eval global const $name = $ex
 end
 
