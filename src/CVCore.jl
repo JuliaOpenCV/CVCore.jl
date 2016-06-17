@@ -108,6 +108,12 @@ typealias Scalar cvScalar_
 (::Type{Scalar})(s1=0,s2=0,s3=0,s4=0) = Scalar{Float64}(s1,s2,s3,s4)
 eltype{T}(s::Scalar{T}) = T
 
+### cv::TermCriteria ###
+
+const TERM_CRITERIA_COUNT = icxx"cv::TermCriteria::COUNT;"
+const TERM_CRITERIA_MAX_ITER = icxx"cv::TermCriteria::MAX_ITER;"
+const TERM_CRITERIA_EPS = icxx"cv::TermCriteria::EPS;"
+
 include("mat.jl")
 
 end # module
