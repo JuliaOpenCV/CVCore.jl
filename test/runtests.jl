@@ -179,3 +179,8 @@ end
     @test maketype(CV_32F, 3) == CV_32FC3
     @test maketype(CV_32F, 4) == CV_32FC4
 end
+
+@testset "cv::TermCriteria" begin
+    criteria = TermCriteria(CVCore.TERM_CRITERIA_EPS, 30, 0.001)
+    @test isa(criteria, Cxx.CppValue)
+end

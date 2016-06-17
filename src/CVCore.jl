@@ -1,7 +1,7 @@
 module CVCore
 
 export AbstractCvMat, MatExpr, Mat, UMat, depth, channels, flags, dims, rows,
-    cols, clone, total, isContinuous, elemSize, Scalar
+    cols, clone, total, isContinuous, elemSize, Scalar, TermCriteria
 
 #=
 Naming convention:
@@ -113,6 +113,10 @@ eltype{T}(s::Scalar{T}) = T
 const TERM_CRITERIA_COUNT = icxx"cv::TermCriteria::COUNT;"
 const TERM_CRITERIA_MAX_ITER = icxx"cv::TermCriteria::MAX_ITER;"
 const TERM_CRITERIA_EPS = icxx"cv::TermCriteria::EPS;"
+
+typealias TermCriteria cxxt"cv::TermCriteria"
+(::Type{TermCriteria})(typ, maxCount, epsilon) =
+    icxx"cv::TermCriteria($typ, $maxCount, $epsilon);"
 
 include("mat.jl")
 
