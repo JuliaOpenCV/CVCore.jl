@@ -12,6 +12,7 @@ Naming convention:
 using LibOpenCV
 using Cxx
 
+include("macros.jl")
 include("const.jl")
 
 import Base: call, convert, eltype, size
