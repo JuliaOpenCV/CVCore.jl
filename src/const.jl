@@ -47,7 +47,6 @@ for name in [
     :CV_64FC3,
     :CV_64FC4,
 
-
     :CV_MAT_CN_MASK,
     :CV_MAT_TYPE_MASK,
     :CV_MAT_CONT_FLAG_SHIFT,
@@ -62,31 +61,65 @@ for name in [
     end
 end
 
+const BorderTypes = Cxx.CppEnum{Symbol("cv::BorderTypes"),UInt32}
+const CmpTypes = Cxx.CppEnum{Symbol("cv::CmpTypes"),UInt32}
+const DecompTypes = Cxx.CppEnum{Symbol("cv::DecompTypes"),UInt32}
+const DftFlags = Cxx.CppEnum{Symbol("cv::DftFlags"),UInt32}
+const GemmFlags = Cxx.CppEnum{Symbol("cv::GemmFlags"),UInt32}
 
-#=
 for name in [
     :ACCESS_READ,
     :ACCESS_WRITE,
     :ACCESS_RW,
     :ACCESS_MASK,
     :ACCESS_FAST,
+
+    :BORDER_CONSTANT,
+    :BORDER_REPLICATE,
+    :BORDER_REFLECT,
+    :BORDER_WRAP,
+    :BORDER_REFLECT_101,
+    :BORDER_TRANSPARENT,
+    :BORDER_REFLECT101,
+    :BORDER_DEFAULT,
+    :BORDER_ISOLATED,
+
+    :CMP_EQ,
+    :CMP_GT,
+    :CMP_GE,
+    :CMP_LT,
+    :CMP_LE,
+    :CMP_NE,
+
+    :DECOMP_LU,
+    :DECOMP_SVD,
+    :DECOMP_EIG,
+    :DECOMP_CHOLESKY,
+    :DECOMP_QR,
+    :DECOMP_NORMAL,
+
+    :DFT_INVERSE,
+    :DFT_SCALE,
+    :DFT_ROWS,
+    :DFT_COMPLEX_OUTPUT,
+    :DFT_REAL_OUTPUT,
+    :DCT_INVERSE,
+    :DCT_ROWS,
+
+    :GEMM_1_T,
+    :GEMM_2_T,
+    :GEMM_3_T,
+
+    :NORM_INF,
+    :NORM_L1,
+    :NORM_L2,
+    :NORM_L2SQR,
+    :NORM_HAMMING,
+    :NORM_HAMMING2,
+    :NORM_TYPE_MASK,
+    :NORM_RELATIVE,
+    :NORM_MINMAX,
     ]
     ex = Expr(:macrocall, Symbol("@icxx_str"), string("cv::", name, ";"))
     @eval global const $name = $ex
 end
-
-Cxx.jl has type translation bug? The above code doesn't work as expected:
-julia> icxx"cv::ACCESS_READ;"
-0x01000000
-
-julia> icxx"std::cout << cv::ACCESS_READ << std::endl;";
-16777216
-=#
-
-const ACCESS_READ   = 1<<24
-const ACCESS_WRITE  = 1<<25
-const ACCESS_RW     = 3<<24
-const ACCESS_MASK   = ACCESS_RW
-const ACCESS_FAST   = 1<<26
-
-export ACCESS_READ, ACCESS_WRITE, ACCESS_RW, ACCESS_MASK, ACCESS_FAST
