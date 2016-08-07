@@ -3,9 +3,9 @@ export @gencxxf
 using Cxx
 
 global const JlToCxxVarNameMap = Dict{Any,Any}(
-    :AbstractCvMat => symbol(".handle"),
-    :Mat => symbol(".handle"),
-    :UMat => symbol(".handle"),
+    :AbstractCvMat => Symbol(".handle"),
+    :Mat => Symbol(".handle"),
+    :UMat => Symbol(".handle"),
 )
 
 function gencxxf_impl(callexpr::Expr, cxxname::String, varmap::Dict)
@@ -49,7 +49,7 @@ function gencxxf_impl(callexpr::Expr, cxxname::String, varmap::Dict)
     $(cxxname)($(join(map(x -> string("\$(", x, ")"), cxxargs), ", ")));
     """
     # @show icxxstr
-    icxxcall = Expr(:macrocall, symbol("@icxx_str"), icxxstr)
+    icxxcall = Expr(:macrocall, Symbol("@icxx_str"), icxxstr)
 
     f = esc(quote
             function $name($(args...))
