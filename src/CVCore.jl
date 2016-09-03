@@ -1,7 +1,8 @@
 module CVCore
 
 export AbstractCvMat, MatExpr, Mat, UMat, depth, channels, flags, dims, rows,
-    cols, clone, total, isContinuous, elemSize, Scalar, TermCriteria
+    cols, clone, total, isContinuous, elemSize, Scalar, TermCriteria,
+    convertScaleAbs!, convertScaleAbs, addWeighted!, addWeighted
 
 #=
 Naming convention:
@@ -120,5 +121,22 @@ typealias TermCriteria cxxt"cv::TermCriteria"
     icxx"cv::TermCriteria($typ, $maxCount, $epsilon);"
 
 include("mat.jl")
+
+@gencxxf(convertScaleAbs!(src::AbstractCvMat, dst::AbstractCvMat,
+    alpha=1,beta=0), "cv::convertScaleAbs")
+function convertScaleAbs(src::AbstractCvMat, alpha=1, beta=0)
+    dst = similar_empty(src)
+    convertScaleAbs!(src, dst, alpha, beta)
+    dst
+end
+
+@gencxxf(addWeighted!(src1::AbstractCvMat, alpha, src2::AbstractCvMat, beta,
+    gamma, dst::AbstractCvMat, dtype=-1), "cv::addWeighted")
+function addWeighted(src1::AbstractCvMat, alpha, src2::AbstractCvMat, beta,
+    gamma, dtype=-1)
+    dst = similar_empty(src)
+    addWeighted!(src1, alpha, src2, beta, gamma, dst, dtype)
+    dst
+end
 
 end # module
