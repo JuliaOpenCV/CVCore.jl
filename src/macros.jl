@@ -2,10 +2,10 @@ export @gencxxf
 
 using Cxx
 
-global const JlToCxxVarNameMap = Dict{Any,Any}(
-    :AbstractCvMat => Symbol(".handle"),
-    :Mat => Symbol(".handle"),
-    :UMat => Symbol(".handle"),
+const JlToCxxVarNameMap = Dict{Any,Any}(
+    :AbstractCvMat => :(CVCore.handle),
+    :Mat => :(CVCore.handle),
+    :UMat => :(CVCore.handle),
 )
 
 function gencxxf_impl(callexpr::Expr, cxxname::String, varmap::Dict)
@@ -35,11 +35,18 @@ function gencxxf_impl(callexpr::Expr, cxxname::String, varmap::Dict)
             push!(cxxargs, arg.args[1])
         else
             cxxarg = copy(arg)
-            # TODO: Union
             typname = arg.args[2]
             varname = arg.args[1]
+            # Union
+            if !isa(typname, Symbol) && typname.head == :curly && typname.args[1] == :Union
+                if all(map(x -> haskey(varmap, x), typname.args[2:end]))
+                    cxxarg.args[1] = Expr(:call, varmap[typname.args[2]], varname)
+                else
+                    error("Inconsistent Union type")
+                end
+            end
             if haskey(varmap, typname)
-                cxxarg.args[1] = Symbol(varname, varmap[typname])
+                cxxarg.args[1] = Expr(:call, varmap[typname], varname)
             end
             push!(cxxargs, cxxarg.args[1])
         end

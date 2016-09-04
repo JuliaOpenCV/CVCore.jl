@@ -13,6 +13,11 @@ Naming convention:
 using LibOpenCV
 using Cxx
 
+"""
+Returns a refrence of the interal structure
+"""
+function handle end
+
 include("macros.jl")
 include("const.jl")
 
@@ -49,9 +54,9 @@ cvSize(x, y) = icxx"cv::Size($x, $y);"
 
 typealias AbstractCvSize Union{cvSize, cvSize_}
 
-height(s::AbstractCvSize) = Int(@cxx s->height)
-width(s::AbstractCvSize) = Int(@cxx s->width)
-area(s::AbstractCvSize) = Int(@cxx s->area())
+height(s::AbstractCvSize) = Int(icxx"$s.height;")
+width(s::AbstractCvSize) = Int(icxx"$s.width;")
+area(s::AbstractCvSize) = Int(icxx"$s.area();")
 
 """Determine julia type from the depth of cv::Mat
 """
