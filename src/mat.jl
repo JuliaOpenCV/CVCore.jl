@@ -8,7 +8,6 @@ abstract AbstractCvMat{T,N} <: AbstractArray{T,N}
 # NOTE: subtypes of AbstractCvMat should have `handle` as a member.
 handle(m::AbstractCvMat) = m.handle
 
-
 ### Types and methods for C++ types ###
 
 const cvMatExpr = cxxt"cv::MatExpr"
@@ -114,7 +113,6 @@ type Mat{T,N} <: AbstractCvMat{T,N}
     handle::cvMat
 end
 
-
 ### Constructors ###
 
 """Generic constructor"""
@@ -180,6 +178,13 @@ end
 
 (::Type{Mat}){T,N}(m::Mat{T,N}) = Mat{T,N}(m.handle)
 
+### Fallback show method
+
+function Base.show(io::IO, ::MIME{Symbol("text/plain")}, m::AbstractCvMat)
+    print(io, string(typeof(m)))
+    print(io, "\n")
+    Base.showarray(io, convert(Mat, m)::Mat, false; header=false)
+end
 
 ### Mat-specific methods ###
 
@@ -187,6 +192,8 @@ Base.linearindexing(m::Mat) = Base.LinearFast()
 
 similar{T}(m::Mat{T}) = Mat{T}(size(m)...)
 similar_empty(m::Mat) = similar(m)
+
+Base.show(io::IO, m::Mat) = Base.showarray(io, m, false)
 
 # Note that cv::UMat doesn't have `data` in members.
 data(m::Mat) = data(m.handle)
@@ -263,9 +270,6 @@ end
 similar{T}(m::UMat{T}) = UMat{T}(size(m)...)
 similar_empty(m::UMat) = similar(m)
 
-# TODO: make it works
-show(io::IO, u::UMat) = show(io, convert(Mat, u))
-
 
 ### MatExpr{T,N} to Mat{T,N} conversion ###
 
@@ -274,7 +278,7 @@ convert(::Type{Mat}, m::MatExpr) = Mat(
 function show(io::IO, m::MatExpr)
     print(io, string(typeof(m)))
     print(io, "\n")
-    show(io, convert(Mat, m))
+    Base.showarray(io, convert(Mat, m)::Mat, false; header=false)
 end
 
 
