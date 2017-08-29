@@ -3,7 +3,7 @@ import Base: size, eltype, call, similar, convert, show, isempty
 """AbstractCvMat{T,N} represents `N`-dimentional arrays in OpenCV (cv::Mat,
 cv::UMat, etc), which element type are bound to `T`.
 """
-abstract AbstractCvMat{T,N} <: AbstractArray{T,N}
+abstract type AbstractCvMat{T,N} <: AbstractArray{T,N} end
 
 # NOTE: subtypes of AbstractCvMat should have `handle` as a member.
 handle(m::AbstractCvMat) = m.handle
@@ -22,7 +22,7 @@ eltype(m::cvMatExpr) = jltype(depth(m))
 
 const cvMat = cxxt"cv::Mat"
 const cvUMat = cxxt"cv::UMat"
-typealias cvMatVariants Union{cvMat, cvUMat}
+const cvMatVariants = Union{cvMat, cvUMat}
 
 depth(m::cvMatVariants) = convert(Int, icxx"$m.depth();")
 channels(m::cvMatVariants) = convert(Int, icxx"$m.channels();")
@@ -83,7 +83,7 @@ respectively.
 
 TODO: should consder wherther I make this a subtype of AbstractCvMat{T,N}
 """
-type MatExpr{T,N}
+mutable struct MatExpr{T,N}
     handle::cvMatExpr
 end
 
@@ -91,7 +91,7 @@ handle(m::MatExpr) = m.handle
 channels(m::MatExpr) = channels(handle(m))
 size(m::MatExpr) = size(handle(m))
 
-function (::Type{MatExpr})(handle::cvMatExpr)
+function MatExpr(handle::cvMatExpr)
     # determin type parameters by value
     T = eltype(handle)
     N = length(size(handle))
@@ -109,14 +109,14 @@ NOTE: Mat{T,N} supports multi-channel 2-dimentional matrices and
 single-channel 2-dimentional matrices for now. Should be extended for
 N-dimentional cases.
 """
-type Mat{T,N} <: AbstractCvMat{T,N}
+mutable struct Mat{T,N} <: AbstractCvMat{T,N}
     handle::cvMat
 end
 
 ### Constructors ###
 
 """Generic constructor"""
-function (::Type{Mat})(handle::cvMat)
+function Mat(handle::cvMat)
     # Determine dimention and element type by value and encode eit into type
     T = eltype(handle)
     cn = channels(handle)
@@ -126,57 +126,57 @@ function (::Type{Mat})(handle::cvMat)
 end
 
 """Empty mat constructor"""
-function (::Type{Mat{T,N}}){T,N}()
+function Mat{T,N}() where {T,N}
     handle = icxx"cv::Mat();"
     Mat{T,N}(handle)
 end
-function (::Type{Mat{T}}){T}()
+function Mat{T}() where T
     handle = icxx"cv::Mat();"
     Mat{T,2}(handle)
 end
 
 """Single-channel 2-dimentional mat constructor"""
-function (::Type{Mat{T}}){T}(rows::Int, cols::Int)
+function Mat{T}(rows::Int, cols::Int) where T
     typ = maketype(cvdepth(T), 1)
     handle = icxx"cv::Mat($rows, $cols, $typ);"
     Mat{T,2}(handle)
 end
 
-function (::Type{Mat{T}}){T}(rows::Int, cols::Int, s::AbstractCvScalar)
+function Mat{T}(rows::Int, cols::Int, s::AbstractCvScalar) where T
     typ = maketype(cvdepth(T), 1)
     handle = icxx"cv::Mat($rows, $cols, $typ, $s);"
     Mat{T,2}(handle)
 end
 
 """Multi-chanel 2-dimentional mat constructor"""
-function (::Type{Mat{T}}){T}(rows::Int, cols::Int, cn::Int)
+function Mat{T}(rows::Int, cols::Int, cn::Int) where T
     typ = maketype(cvdepth(T), cn)
     handle = icxx"cv::Mat($rows, $cols, $typ);"
     Mat{T,3}(handle)
 end
 
-function (::Type{Mat{T}}){T}(rows::Int, cols::Int, cn::Int, s::AbstractCvScalar)
+function Mat{T}(rows::Int, cols::Int, cn::Int, s::AbstractCvScalar) where T
     typ = maketype(cvdepth(T), cn)
     handle = icxx"cv::Mat($rows, $cols, $typ, $s);"
     Mat{T,3}(handle)
 end
 
 """Single-channel 2-dimentaionl mat constructor with user provided data"""
-function (::Type{Mat{T}}){T}(rows::Int, cols::Int, data::Ptr{T}, step=0)
+function Mat{T}(rows::Int, cols::Int, data::Ptr{T}, step=0) where T
     typ = maketype(cvdepth(T), 1)
     handle = icxx"cv::Mat($rows, $cols, $typ, $data, $step);"
     Mat{T,2}(handle)
 end
 
 """Multi-channel 2-dimentaionl mat constructor with user provided data"""
-function (::Type{Mat{T}}){T}(rows::Int, cols::Int, cn::Int, data::Ptr{T},
-        step=0)
+function Mat{T}(rows::Int, cols::Int, cn::Int, data::Ptr{T},
+        step=0) where T
     typ = maketype(cvdepth(T), cn)
     handle = icxx"cv::Mat($rows, $cols, $typ, $data, $step);"
     Mat{T,3}(handle)
 end
 
-(::Type{Mat}){T,N}(m::Mat{T,N}) = Mat{T,N}(m.handle)
+Mat(m::Mat{T,N}) where {T,N} = Mat{T,N}(m.handle)
 
 ### Fallback show method
 
@@ -190,7 +190,7 @@ end
 
 Base.linearindexing(m::Mat) = Base.LinearFast()
 
-similar{T}(m::Mat{T}) = Mat{T}(size(m)...)
+similar(m::Mat{T}) where {T} = Mat{T}(size(m)...)
 similar_empty(m::Mat) = similar(m)
 
 Base.show(io::IO, m::Mat) = Base.showarray(io, m, false)
@@ -204,7 +204,7 @@ getindex(m::Mat, i::Int) =
     convert(eltype(m), icxx"$(m.handle).at<$(eltype(m))>($i-1);")
 getindex(m::Mat, i::Int, j::Int) =
     convert(eltype(m), icxx"$(m.handle).at<$(eltype(m))>($i-1, $j-1);")
-function getindex{T}(m::Mat{T}, i::Int, j::Int, k::Int)
+function getindex(m::Mat{T}, i::Int, j::Int, k::Int) where T
     cn = Val{channels(m)}
     convert(eltype(m), icxx"$(m.handle).at<cv::Vec<$T,$cn>>($i-1, $j-1)[$k-1];")
 end
@@ -213,7 +213,7 @@ setindex!(m::Mat, v, i::Int) =
     icxx"$(m.handle).at<$(eltype(m))>($i-1) = $v;"
 setindex!(m::Mat, v, i::Int, j::Int) =
     icxx"$(m.handle).at<$(eltype(m))>($i-1, $j-1) = $v;"
-function setindex!{T}(m::Mat{T}, v, i::Int, j::Int, k::Int)
+function setindex!(m::Mat{T}, v, i::Int, j::Int, k::Int) where T
     cn = Val{channels(m)}
     icxx"$(m.handle).at<cv::Vec<$T,$cn>>($i-1, $j-1)[$k-1] = $v;"
 end
@@ -225,12 +225,12 @@ end
 `T` and `N` represents the element type and the dimension of Mat,
 respectively.
 """
-type UMat{T,N} <: AbstractCvMat{T,N}
+mutable struct UMat{T,N} <: AbstractCvMat{T,N}
     handle::cvUMat
 end
 
 """Generic constructor"""
-function (::Type{UMat})(handle::UMat)
+function UMat(handle::UMat)
     # Determine dimention and element type by value and encode eit into type
     T = eltype(handle)
     cn = channels(handle)
@@ -240,34 +240,34 @@ function (::Type{UMat})(handle::UMat)
 end
 
 # """Empty mat constructor"""
-function (::Type{UMat{T}}){T}(;usage_flags::UMatUsageFlags=USAGE_DEFAULT)
+function UMat{T}(;usage_flags::UMatUsageFlags=USAGE_DEFAULT) where T
     handle = icxx"cv::UMat($usage_flags);"
     UMat{T,0}(handle)
 end
 
 # """Single-channel 2-dimentional mat constructor"""
-function (::Type{UMat{T}}){T}(rows::Int, cols::Int;
-                usage_flags::UMatUsageFlags=USAGE_DEFAULT)
+function UMat{T}(rows::Int, cols::Int;
+             usage_flags::UMatUsageFlags=USAGE_DEFAULT) where T
     typ = maketype(cvdepth(T), 1)
     handle = icxx"cv::UMat($rows, $cols, $typ, $usage_flags);"
     UMat{T,2}(handle)
 end
 
 # """Multi-chanel 2-dimentional mat constructor"""
-function (::Type{UMat{T}}){T}(rows::Int, cols::Int, cn::Int;
-                usage_flags::UMatUsageFlags=USAGE_DEFAULT)
+function UMat{T}(rows::Int, cols::Int, cn::Int;
+             usage_flags::UMatUsageFlags=USAGE_DEFAULT) where T
     typ = maketype(cvdepth(T), cn)
     handle = icxx"cv::UMat($rows, $cols, $typ, $usage_flags);"
     UMat{T,3}(handle)
 end
 
-(::Type{UMat}){T,N}(m::UMat{T,N}) = UMat{T,N}(m.handle)
-function (::Type{UMat}){T,N}(m::Mat{T,N}, flags=ACCESS_READ)
+UMat(m::UMat{T,N}) where {T,N} = UMat{T,N}(m.handle)
+function UMat(m::Mat{T,N}, flags=ACCESS_READ) where {T,N}
     UMat{T,N}(
         icxx"$(m.handle).getUMat($flags);")
 end
 
-similar{T}(m::UMat{T}) = UMat{T}(size(m)...)
+similar(m::UMat{T}) where {T} = UMat{T}(size(m)...)
 similar_empty(m::UMat) = similar(m)
 
 
@@ -286,22 +286,22 @@ end
 
 convert(::Type{MatExpr}, m::AbstractCvMat) = MatExpr(
     icxx"return cv::MatExpr($(m.handle));")
-convert{T,N}(::Type{MatExpr{T,N}}, m::AbstractCvMat{T,N}) = MatExpr{T,N}(
+convert(::Type{MatExpr{T,N}}, m::AbstractCvMat{T,N}) where {T,N} = MatExpr{T,N}(
     icxx"return cv::MatExpr($(m.handle));")
 convert(::Type{MatExpr}, m::UMat) = convert(MatExpr, convert(Mat, m))
-convert{T,N}(::Type{MatExpr{T,N}}, m::UMat{T,N}) = MatExpr{T,N}(
+convert(::Type{MatExpr{T,N}}, m::UMat{T,N}) where {T,N} = MatExpr{T,N}(
     icxx"return cv::MatExpr($(m.handle));")
 
 
 ### UMat{T,N} to Mat{T,N} conversion ###
 
-convert{T,N}(::Type{Mat}, m::UMat{T,N}, flags=ACCESS_READ) = Mat{T,N}(
+convert(::Type{Mat}, m::UMat{T,N}, flags=ACCESS_READ) where {T,N} = Mat{T,N}(
     icxx"$(m.handle).getMat($flags);")
 
 
 ### Array{T,N} to Mat conversion ###
 
-function convert{T,N}(::Type{Mat}, arr::Array{T,N})
+function convert(::Type{Mat}, arr::Array{T,N}) where {T,N}
     if N != 2 && N != 3
         error("Not supported conversion for now")
     end
@@ -311,7 +311,7 @@ end
 
 ### Mat to Array{T,N} conversion
 
-function convert{T,N}(::Type{Array}, m::Mat{T,N})
+function convert(::Type{Array}, m::Mat{T,N}) where {T,N}
     p = convert(Ptr{T}, data(m))
     cn = channels(m)
     arr = pointer_to_array(p, length(m))
@@ -324,8 +324,8 @@ end
 import Base: +, -, .*, ./, *, /, transpose, ctranspose
 import Base: promote_rule
 
-promote_rule{T,N}(::Type{Mat{T,N}}, ::Type{MatExpr{T,N}}) = MatExpr{T,N}
-promote_rule{T,N}(::Type{UMat{T,N}}, ::Type{MatExpr{T,N}}) = MatExpr{T,N}
+promote_rule(::Type{Mat{T,N}}, ::Type{MatExpr{T,N}}) where {T,N} = MatExpr{T,N}
+promote_rule(::Type{UMat{T,N}}, ::Type{MatExpr{T,N}}) where {T,N} = MatExpr{T,N}
 
 macro matexpr(ex)
     if ex.head != :call || length(ex.args) != 3

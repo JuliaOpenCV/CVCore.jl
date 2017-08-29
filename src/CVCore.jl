@@ -124,34 +124,34 @@ import Base: call, convert, eltype, size
 
 ### Cxx types ###
 
-typealias cvScalar_{T} cxxt"cv::Scalar_<$T>"
+cvScalar_{T} =  cxxt"cv::Scalar_<$T>"
 
 const cvScalar = cxxt"cv::Scalar"
 cvScalar(v) = icxx"return cv::Scalar($v);"
 
-typealias AbstractCvScalar Union{cvScalar, cvScalar_}
+const AbstractCvScalar = Union{cvScalar, cvScalar_}
 
-typealias cvPoint_{T} cxxt"cv::Point_<$T>"
-(::Type{cvPoint_{T}}){T}(x, y) = icxx"cv::Point_<$T>($x, $y);"
-eltype{T}(p::cvPoint_{T}) = T
+cvPoint_{T} =  cxxt"cv::Point_<$T>"
+cvPoint_{T}(x, y) where {T} = icxx"cv::Point_<$T>($x, $y);"
+eltype(p::cvPoint_{T}) where {T} = T
 
-typealias cvPoint3_{T} cxxt"cv::Point3_<$T>"
-(::Type{cvPoint3_{T}}){T}(x, y, z) = icxx"cv::Point3_<$T>($x, $y, $z);"
-eltype{T}(p::cvPoint3_{T}) = T
+cvPoint3_{T} =  cxxt"cv::Point3_<$T>"
+cvPoint3_{T}(x, y, z) where {T} = icxx"cv::Point3_<$T>($x, $y, $z);"
+eltype(p::cvPoint3_{T}) where {T} = T
 
-typealias cvPoint cxxt"cv::Point"
+const cvPoint = cxxt"cv::Point"
 cvPoint(x, y) = icxx"cv::Point($x, $y);"
 
-typealias AbstractCvPoint Union{cvPoint, cvPoint_}
+const AbstractCvPoint = Union{cvPoint, cvPoint_}
 
-typealias cvSize_{T} cxxt"cv::Size_<$T>"
-(::Type{cvSize_{T}}){T}(x, y) = icxx"cv::Size_<$T>($x, $y);"
-eltype{T}(s::cvSize_{T}) = T
+cvSize_{T} =  cxxt"cv::Size_<$T>"
+cvSize_{T}(x, y) where {T} = icxx"cv::Size_<$T>($x, $y);"
+eltype(s::cvSize_{T}) where {T} = T
 
-typealias cvSize cxxt"cv::Size"
+const cvSize = cxxt"cv::Size"
 cvSize(x, y) = icxx"cv::Size($x, $y);"
 
-typealias AbstractCvSize Union{cvSize, cvSize_}
+const AbstractCvSize = Union{cvSize, cvSize_}
 
 height(s::AbstractCvSize) = Int(icxx"$s.height;")
 width(s::AbstractCvSize) = Int(icxx"$s.width;")
@@ -208,11 +208,11 @@ maketype(depth, cn) = mat_depth(depth) + ((cn-1) << CV_CN_SHIFT)
 ### Scalar ###
 
 # TODO: need to be subtype of cv::Vec
-typealias Scalar cvScalar_
-(::Type{Scalar{T}}){T}(s1=01,s2=0,s3=0,s4=0) =
+const Scalar = cvScalar_
+Scalar{T}(s1=01,s2=0,s3=0,s4=0) where {T} =
     icxx"return cv::Scalar_<$T>($s1,$s2,$s3,$s4);"
-(::Type{Scalar})(s1=0,s2=0,s3=0,s4=0) = Scalar{Float64}(s1,s2,s3,s4)
-eltype{T}(s::Scalar{T}) = T
+Scalar(s1=0,s2=0,s3=0,s4=0) = Scalar{Float64}(s1,s2,s3,s4)
+eltype(s::Scalar{T}) where {T} = T
 
 ### cv::TermCriteria ###
 
@@ -220,8 +220,8 @@ const TERM_CRITERIA_COUNT = icxx"cv::TermCriteria::COUNT;"
 const TERM_CRITERIA_MAX_ITER = icxx"cv::TermCriteria::MAX_ITER;"
 const TERM_CRITERIA_EPS = icxx"cv::TermCriteria::EPS;"
 
-typealias TermCriteria cxxt"cv::TermCriteria"
-(::Type{TermCriteria})(typ, maxCount, epsilon) =
+const TermCriteria = cxxt"cv::TermCriteria"
+TermCriteria(typ, maxCount, epsilon) =
     icxx"cv::TermCriteria($typ, $maxCount, $epsilon);"
 
 include("mat.jl")
