@@ -120,7 +120,7 @@ function handle end
 include("macros.jl")
 include("const.jl")
 
-import Base: call, convert, eltype, size
+import Base: convert, eltype, size
 
 ### Cxx types ###
 
