@@ -77,12 +77,28 @@ macro mat_op_testdata()
     end)
 end
 
+# Since data is stored in different order in julia arrays and cv arrays
+# .== simply doesn't work as expected. The function does manually iterate
+# and compare elements.
+function equal2d(x1, x2)
+    @assert size(x1) == size(x2)
+    n, m = size(x1)
+    ret = true
+    for i in 1:m
+        for j in 1:n
+            ret = ret && x1[j,i] == x2[j,i]
+        end
+    end
+    return ret
+end
+
 @testset "Matrix operations" begin
     @testset "+" begin
         @mat_op_testdata
         ret = m + m
         retmat = Mat(ret)
-        @test all(retmat .== 2x)
+        # @test all(retmat .== 2x)
+        @test equal2d(retmat, 2x)
     end
 
     @testset "-" begin
@@ -94,19 +110,24 @@ end
 
     @testset ".*" begin
         @mat_op_testdata
-        ret = m .* 5
+        # TODO
+        # ret = m .* 5
+        ret = broadcast(*, m, 5)
         @test isa(ret, MatExpr)
         retmat = Mat(ret)
-        @test all(retmat .== 5x)
+        @test equal2d(retmat, 5x)
     end
 
     @testset "./" begin
         @mat_op_testdata
-        ret = m ./ 2
+        # TODO
+        # ret = m ./ 2
+        ret = broadcast(/, m, 2)
         @test isa(ret, MatExpr)
         retmat = Mat(ret)
         expected = x ./ 2
-        @test all(retmat .== expected)
+        @test equal2d(retmat, expected)
+        # @test all(retmat .== expected)
     end
 
     @testset "*" begin
@@ -118,7 +139,8 @@ end
         @mat_op_testdata
         retexpr = m'
         retmat = Mat(retexpr)
-        @test all(retmat .== x')
+        @test equal2d(retmat, x')
+        # @test all(retmat .== x')
     end
 
     @testset "inv" begin
@@ -132,7 +154,7 @@ end
         inv_x = inv(x * xt)
         ret = inv(square_mat)
         inv_m = Mat(ret)
-        @test_approx_eq inv_x inv_m
+        @test inv_x ≈ inv_m
     end
 end
 
