@@ -312,11 +312,12 @@ end
 ### Mat to Array{T,N} conversion
 
 @generated function convert(::Type{Array}, m::Mat{T,N}) where {T,N}
+    pt = Ptr{T}
     quote
-        # unsafe_wrap(Array, p, reverse(size(m)))
-        p = reinterpret(Ptr{$T}, icxx"$(m.handle).data;")
+        # TODO: not sure if this is a julia bug
+        p = icxx"$(m.handle).data;"
+        p = reinterpret($pt, icxx"$(m.handle).data;")
         unsafe_wrap(Array, p, reverse(size(m)))
-        # reshape(arr, reverse(size(m))...)
     end
 end
 
